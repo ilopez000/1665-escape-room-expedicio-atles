@@ -1,0 +1,385 @@
+---
+import Base from '../layouts/Base.astro';
+import { CHECKLIST, CORREU_DOCENT, SALES } from '../data/joc';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<Base titol="El cofre">
+  <section id="denegat" class="denegat" hidden>
+    <p class="sobretitol">El far del Grup Vela</p>
+    <h1 class="glitch vermell" data-text="COFRE TANCAT">COFRE TANCAT</h1>
+    <p>Per obrir el cofre necessites les sis lletres de la contrasenya: supera totes les etapes.</p>
+    <a class="boto boto-principal" href={`${base}/`}>Torna a la carta de navegació</a>
+  </section>
+
+  <!-- Fase 1: la clau mestra -->
+  <section id="fase-clau" class="fase-clau" hidden>
+    <figure class="hero hero-sala">
+      <img src="/img/foto-final.webp" alt="Far a la costa al capvespre" />
+      <figcaption>Foto: Holly, StockSnap (CC0)</figcaption>
+    </figure>
+    <p class="sobretitol">El far del Grup Vela · El cofre</p>
+    <h1 class="glitch" data-text="EL COFRE">EL COFRE</h1>
+    <p class="intro-mapa">
+      Tens les sis lletres, però les has trobat desordenades. Cada lletra porta la posició que ocupa a la contrasenya.
+      Col·loca-les en ordre. Pista: és la capa del mapa on viuen els aparells que mesuren i mouen el món físic.
+    </p>
+    <div class="fragments-recollits">
+      {SALES.map((sala) => (
+        <div class="fragment-tile">
+          <span class="fragment-pos">{sala.codi}</span>
+          <span class="fragment-lletra">{sala.fragment.lletra}</span>
+          <span class="fragment-pos">posició {sala.fragment.posicio}</span>
+        </div>
+      ))}
+    </div>
+    <form id="form-clau" class="form-clau">
+      <label for="clau">Contrasenya</label>
+      <div class="caselles-clau" id="caselles"></div>
+      <input id="clau" class="input-clau" type="text" maxlength="6" autocomplete="off" spellcheck="false" aria-describedby="missatge-clau" />
+      <button class="boto boto-principal gran" type="submit">Obre el cofre</button>
+      <p id="missatge-clau" class="pany-missatge" role="status"></p>
+    </form>
+  </section>
+
+  <!-- Fase 2: protocol d'expulsió -->
+  <section id="fase-quiz" class="fase-quiz" hidden>
+    <p class="sobretitol">Cofre obert</p>
+    <h1>L'atles del Grup Vela</h1>
+    <div id="pany-final"></div>
+  </section>
+
+  <!-- Fase 3: informe del cas -->
+  <section id="fase-informe" class="informe" hidden>
+    <div class="certificat" id="certificat">
+      <p class="sobretitol">Informe de l'expedició · Societat Cartogràfica Prat</p>
+      <h1 class="glitch verd" data-text="ATLES RECUPERAT">ATLES RECUPERAT</h1>
+      <p class="certificat-agent">Cartògraf/a: <strong id="inf-agent"></strong> · Grup <strong id="inf-grup"></strong></p>
+      <p class="rang-etiqueta">Rang obtingut</p>
+      <p class="rang" id="inf-rang"></p>
+      <p class="rang-text" id="inf-rang-text"></p>
+
+      <dl class="resum-node gran">
+        <div><dt>XP</dt><dd id="inf-xp"></dd></div>
+        <div><dt>Rendiment</dt><dd id="inf-percent"></dd></div>
+        <div><dt>Precisió</dt><dd id="inf-integritat"></dd></div>
+        <div><dt>Errors</dt><dd id="inf-errors"></dd></div>
+        <div><dt>Pistes</dt><dd id="inf-pistes"></dd></div>
+      </dl>
+
+      <h2>Insígnies</h2>
+      <ul class="insignies" id="inf-insignies"></ul>
+
+      <h2>Etapes</h2>
+      <table class="taula-nodes">
+        <thead><tr><th>Etapa</th><th>XP</th><th>Errors</th><th>Pistes</th></tr></thead>
+        <tbody id="inf-nodes"></tbody>
+      </table>
+      <p class="data-informe" id="inf-data"></p>
+    </div>
+
+    <section class="checklist">
+      <h2>Abans de marxar, comprova-ho</h2>
+      <p class="ajuda">Marca el que ja saps fer. El que quedi sense marcar és el que has de repassar al recurs de la sessió 3. Les marques també s'envien a l'informe.</p>
+      <ul>
+        {CHECKLIST.map((item, i) => (
+          <li><label><input type="checkbox" id={`chk-${i}`} /> <span>{item}</span></label></li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="enviament" id="enviament">
+      <h2>Envia l'informe al professor</h2>
+      <p class="ajuda">
+        Comprova el teu nom i el grup i prem <strong>Envia l'informe</strong>. S'obrirà el teu programa de correu amb el
+        missatge ja escrit per a <strong>{CORREU_DOCENT}</strong>: només has de prémer <em>Enviar</em>.
+      </p>
+      <div class="fila-form">
+        <input id="env-nom" type="text" maxlength="40" aria-label="Nom i cognoms" placeholder="Nom i cognoms" />
+        <select id="env-grup" class="desplegable grup" aria-label="Grup"></select>
+      </div>
+      <div class="centre">
+        <a id="envia" class="boto boto-principal gran" href="#">✉ Envia l'informe</a>
+        <button id="copia" class="boto boto-fantasma" type="button">Copia l'informe</button>
+      </div>
+      <p id="env-missatge" class="pany-missatge" role="status"></p>
+      <p class="ajuda petit">
+        No s'obre cap correu? Prem <strong>Copia l'informe</strong>, obre el teu correu de l'escola, escriu a
+        {CORREU_DOCENT} i enganxa-hi el text.
+      </p>
+    </section>
+
+    <div class="centre accions-informe">
+      <button id="imprimeix" class="boto boto-fantasma" type="button">Desa l'informe en PDF</button>
+      <a class="boto boto-fantasma" href={`${base}/`}>Torna a la carta</a>
+      <button id="reinicia" class="boto boto-fantasma" type="button">Torna a començar l'expedició</button>
+    </div>
+  </section>
+
+  <script>
+    import { CHECKLIST, CLAU_MESTRA, CORREU_DOCENT, GRUPS, PROVA_FINAL, RANGS, SALES } from '../data/joc';
+    import { carrega, desa, perdIntegritat, reinicia, totesCompletades, xpMaxim, xpPany, xpTotal } from '../scripts/estat';
+    import { destacaHud, pintaHud } from '../scripts/hud';
+    import { montaProva } from '../scripts/proves';
+    import { so } from '../scripts/so';
+
+    const $ = (id: string) => document.getElementById(id)!;
+    const estat = carrega();
+
+    if (!estat.agent || !totesCompletades(estat)) {
+      $('denegat').hidden = false;
+    } else if (estat.final.completada) {
+      mostraInforme();
+    } else if (estat.clauIntroduida) {
+      faseQuiz();
+    } else {
+      faseClau();
+    }
+
+    // ---------------------------------------------------------- fase 1
+    function faseClau() {
+      $('fase-clau').hidden = false;
+      const input = $('clau') as HTMLInputElement;
+      const caselles = $('caselles');
+      const pinta = () => {
+        caselles.innerHTML = '';
+        for (let i = 0; i < CLAU_MESTRA.length; i++) {
+          const c = document.createElement('span');
+          c.className = 'casella-clau';
+          c.textContent = input.value[i]?.toUpperCase() ?? '';
+          const n = document.createElement('small');
+          n.textContent = String(i + 1);
+          c.append(n);
+          caselles.append(c);
+        }
+      };
+      caselles.addEventListener('click', () => input.focus());
+      input.addEventListener('input', () => {
+        input.value = input.value.replace(/[^a-zA-Z]/g, '').toUpperCase();
+        pinta();
+      });
+      pinta();
+      input.focus();
+
+      $('form-clau').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const missatge = $('missatge-clau');
+        if (input.value.length < CLAU_MESTRA.length) {
+          missatge.textContent = `La contrasenya té ${CLAU_MESTRA.length} lletres.`;
+          missatge.dataset.tipus = 'info';
+          return;
+        }
+        if (input.value.toUpperCase() === CLAU_MESTRA) {
+          const e2 = carrega();
+          e2.clauIntroduida = true;
+          desa(e2);
+          so('desbloqueig');
+          missatge.textContent = 'Contrasenya correcta. El cofre s\'obre…';
+          missatge.dataset.tipus = 'ok';
+          setTimeout(() => {
+            $('fase-clau').hidden = true;
+            faseQuiz();
+          }, 900);
+        } else {
+          const e2 = carrega();
+          perdIntegritat(e2);
+          pintaHud(e2);
+          destacaHud('integritat');
+          so('error');
+          missatge.textContent = 'Contrasenya incorrecta. Ordena les lletres per la posició que indica cada etapa.';
+          missatge.dataset.tipus = 'error';
+          const form = $('form-clau');
+          form.classList.remove('sacseja');
+          void form.offsetWidth;
+          form.classList.add('sacseja');
+        }
+      });
+    }
+
+    // ---------------------------------------------------------- fase 2
+    function faseQuiz() {
+      $('fase-quiz').hidden = false;
+      let errors = 0;
+      let pistes = 0;
+      montaProva($('pany-final'), PROVA_FINAL, {
+        onError: () => {
+          errors += 1;
+          const e = carrega();
+          perdIntegritat(e);
+          pintaHud(e);
+          destacaHud('integritat');
+        },
+        onPista: () => {
+          pistes += 1;
+        },
+        onResolta: () => {
+          const e = carrega();
+          e.final = { completada: true, xp: xpPany(errors, pistes), errors, pistes };
+          desa(e);
+          pintaHud(e);
+          destacaHud('xp');
+          $('fase-quiz').hidden = true;
+          mostraInforme();
+          so('victoria');
+        },
+      });
+    }
+
+    // ---------------------------------------------------------- fase 3
+    function mostraInforme() {
+      const e = carrega();
+      $('fase-informe').hidden = false;
+      document.body.classList.add('victoria');
+      const xp = xpTotal(e);
+      const percent = Math.round((xp / xpMaxim()) * 100);
+      const rang = RANGS.find((r) => percent >= r.minim) ?? RANGS[RANGS.length - 1];
+      const nodes = SALES.map((s) => ({ sala: s, dades: e.sales[s.id] }));
+      const errors = nodes.reduce((n, x) => n + (x.dades?.errors ?? 0), 0) + e.final.errors;
+      const pistes = nodes.reduce((n, x) => n + (x.dades?.pistes ?? 0), 0) + e.final.pistes;
+
+      $('inf-agent').textContent = e.agent;
+      $('inf-grup').textContent = e.grup || '—';
+      $('inf-rang').textContent = rang.nom;
+      $('inf-rang-text').textContent = rang.text;
+      $('inf-xp').textContent = `${xp} / ${xpMaxim()}`;
+      $('inf-percent').textContent = `${percent}%`;
+      $('inf-integritat').textContent = `${e.integritat}%`;
+      $('inf-errors').textContent = String(errors);
+      $('inf-pistes').textContent = String(pistes);
+      $('inf-data').textContent = `Informe generat el ${new Date().toLocaleString('ca-ES', { dateStyle: 'long', timeStyle: 'short' })}`;
+
+      const cos = $('inf-nodes');
+      cos.innerHTML = '';
+      [...nodes.map((x) => ({ nom: `${x.sala.codi} · ${x.sala.nom}`, d: x.dades })), { nom: "EL COFRE · L'atles del Grup Vela", d: e.final }].forEach(({ nom, d }) => {
+        const tr = document.createElement('tr');
+        [nom, String(d?.xp ?? 0), String(d?.errors ?? 0), String(d?.pistes ?? 0)].forEach((t) => {
+          const td = document.createElement('td');
+          td.textContent = t;
+          tr.append(td);
+        });
+        cos.append(tr);
+      });
+
+      const perfectes = nodes.filter((x) => x.dades && x.dades.errors === 0 && x.dades.pistes === 0).length;
+      const insignies = [
+        { nom: 'Etapes perfectes', desc: `${perfectes} de ${SALES.length} sense errors ni pistes`, te: perfectes > 0 },
+        { nom: 'Sense pistes', desc: 'Atles recuperat sense demanar cap pista', te: pistes === 0 },
+        { nom: 'Precisió intacta', desc: 'Precisió per sobre del 80%', te: e.integritat >= 80 },
+        { nom: 'Caçador/a d\'aparells', desc: 'Etapa 03 sense cap error', te: e.sales[3]?.errors === 0 },
+        { nom: 'Mestre/a de capes', desc: 'Etapa 05 sense cap error', te: e.sales[5]?.errors === 0 },
+        { nom: 'Guardià/na de la torre', desc: 'Etapa 06 sense cap error', te: e.sales[6]?.errors === 0 },
+      ];
+      const llista = $('inf-insignies');
+      llista.innerHTML = '';
+      insignies.forEach((ins) => {
+        const li = document.createElement('li');
+        li.className = ins.te ? 'insignia guanyada' : 'insignia';
+        li.innerHTML = `<span class="insignia-icona">${ins.te ? '★' : '☆'}</span><span><b></b><small></small></span>`;
+        li.querySelector('b')!.textContent = ins.nom;
+        li.querySelector('small')!.textContent = ins.desc;
+        llista.append(li);
+      });
+      document.dispatchEvent(new Event('informe-llest'));
+    }
+
+    // ---------------------------------------------------------- enviament per correu
+    const compte = (n: number, u: string, p: string) => `${n} ${n === 1 ? u : p}`;
+    function textInforme(nom: string, grup: string): string {
+      const e = carrega();
+      const xp = xpTotal(e);
+      const percent = Math.round((xp / xpMaxim()) * 100);
+      const rang = RANGS.find((r) => percent >= r.minim) ?? RANGS[RANGS.length - 1];
+      const files = SALES.map((s) => {
+        const d = e.sales[s.id];
+        return `- ${s.codi} · ${s.nom}: ${d?.xp ?? 0} XP · ${compte(d?.errors ?? 0, 'error', 'errors')} · ${compte(d?.pistes ?? 0, 'pista', 'pistes')}`;
+      });
+      files.push(`- EL COFRE · L'atles: ${e.final.xp} XP · ${compte(e.final.errors, 'error', 'errors')} · ${compte(e.final.pistes, 'pista', 'pistes')}`);
+      const errors = SALES.reduce((n, s) => n + (e.sales[s.id]?.errors ?? 0), 0) + e.final.errors;
+      const pistes = SALES.reduce((n, s) => n + (e.sales[s.id]?.pistes ?? 0), 0) + e.final.pistes;
+      const marcats = CHECKLIST.map((_, i) => (document.getElementById(`chk-${i}`) as HTMLInputElement | null)?.checked ?? false);
+      const falten = marcats.map((m, i) => (m ? null : i + 1)).filter((x) => x !== null);
+      return [
+        'MP 1665 · Sessió 3 · Escape room «Expedició Atles»',
+        '',
+        `Alumne/a: ${nom}`,
+        `Grup: ${grup}`,
+        `Rang: ${rang.nom}`,
+        `XP: ${xp} / ${xpMaxim()} (${percent}%)`,
+        `Precisió del mapa: ${e.integritat}%`,
+        `Errors: ${errors} · Pistes: ${pistes}`,
+        '',
+        'Detall per etapa:',
+        ...files,
+        '',
+        `Autoavaluació: ${marcats.filter(Boolean).length} de ${CHECKLIST.length} punts marcats` +
+          (falten.length ? ` (per repassar: ${falten.join(', ')})` : ''),
+        `Data: ${new Date().toLocaleString('ca-ES', { dateStyle: 'short', timeStyle: 'short' })}`,
+      ].join('\n');
+    }
+
+    function preparaEnviament() {
+      const e = carrega();
+      const nom = $('env-nom') as HTMLInputElement;
+      const grup = $('env-grup') as HTMLSelectElement;
+      grup.innerHTML = '<option value="">Grup…</option>' + GRUPS.map((g) => `<option value="${g}">${g}</option>`).join('');
+      nom.value = e.agent;
+      grup.value = e.grup || '';
+      const missatge = $('env-missatge');
+      const dades = () => {
+        const n = nom.value.trim();
+        const g = grup.value;
+        if (!n || !g) {
+          missatge.textContent = 'Escriu el teu nom i tria el grup abans d\'enviar.';
+          missatge.dataset.tipus = 'info';
+          return null;
+        }
+        const e2 = carrega();
+        e2.agent = n;
+        e2.grup = g;
+        desa(e2);
+        $('inf-agent').textContent = n;
+        $('inf-grup').textContent = g;
+        return { n, g };
+      };
+      $('envia').addEventListener('click', (ev) => {
+        ev.preventDefault();
+        const d = dades();
+        if (!d) return;
+        const assumpte = `1665 · Sessió 3 · Escape room · ${d.g} · ${d.n}`;
+        const url = `mailto:${CORREU_DOCENT}?subject=${encodeURIComponent(assumpte)}&body=${encodeURIComponent(textInforme(d.n, d.g))}`;
+        ($('envia') as HTMLAnchorElement).dataset.mailto = url;
+        window.location.href = url;
+        missatge.textContent = 'S\'ha obert el correu amb l\'informe. Recorda prémer «Enviar» al teu programa de correu.';
+        missatge.dataset.tipus = 'ok';
+      });
+      $('copia').addEventListener('click', async () => {
+        const d = dades();
+        if (!d) return;
+        const text = `Per a: ${CORREU_DOCENT}\nAssumpte: 1665 · Sessió 3 · Escape room · ${d.g} · ${d.n}\n\n${textInforme(d.n, d.g)}`;
+        try {
+          await navigator.clipboard.writeText(text);
+          missatge.textContent = 'Informe copiat. Enganxa\'l en un correu nou per a ' + CORREU_DOCENT + '.';
+          missatge.dataset.tipus = 'ok';
+        } catch {
+          missatge.textContent = 'No s\'ha pogut copiar automàticament. Selecciona el text de l\'informe i copia\'l a mà.';
+          missatge.dataset.tipus = 'error';
+        }
+      });
+    }
+    if (!$('fase-informe').hidden) preparaEnviament();
+    else document.addEventListener('informe-llest', preparaEnviament, { once: true });
+
+    $('imprimeix').addEventListener('click', () => window.print());
+    const botoReinicia = $('reinicia') as HTMLButtonElement;
+    let confirma = false;
+    botoReinicia.addEventListener('click', () => {
+      if (!confirma) {
+        confirma = true;
+        botoReinicia.textContent = 'Segur? Clica un altre cop';
+        botoReinicia.classList.add('perill');
+        return;
+      }
+      reinicia();
+      location.href = import.meta.env.BASE_URL;
+    });
+  </script>
+</Base>

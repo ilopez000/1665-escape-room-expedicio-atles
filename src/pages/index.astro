@@ -1,0 +1,166 @@
+---
+import Base from '../layouts/Base.astro';
+import { GRUPS, INTRO, SALES } from '../data/joc';
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<Base titol="Inici">
+  <!-- Pantalla 1: el cas (si encara no hi ha agent) -->
+  <section id="briefing" class="briefing" hidden>
+    <figure class="hero">
+      <img src={INTRO.imatge.src} alt={INTRO.imatge.alt} />
+      <figcaption>{INTRO.imatge.credit}</figcaption>
+    </figure>
+    <p class="sobretitol">{INTRO.subtitol}</p>
+    <h1 class="glitch" data-text={INTRO.titol}>{INTRO.titol}</h1>
+    <p class="subtitol-gran">El mapa perdut del Grup Vela</p>
+    <div class="terminal">
+      <div class="terminal-barra"><span></span><span></span><span></span> diari de bord · carta segellada</div>
+      <div class="terminal-cos" id="missatge-intro"></div>
+      <button class="boto boto-fantasma salta" type="button" data-salta>Salta ▸▸</button>
+    </div>
+
+    <form id="form-agent" class="form-agent" hidden>
+      <label for="nom-agent">Nom i cognoms</label>
+      <div class="fila-form">
+        <input id="nom-agent" name="agent" type="text" maxlength="40" autocomplete="name" placeholder="p. ex. Marta Garcia Puig" required />
+        <select id="grup-agent" name="grup" class="desplegable grup" required>
+          <option value="">Grup…</option>
+          {GRUPS.map((g) => <option value={g}>{g}</option>)}
+        </select>
+        <button class="boto boto-principal" type="submit">Salpa ▸</button>
+      </div>
+      <p class="ajuda">
+        El nom i el grup surten a l'informe final que enviaràs al professor. Recorreràs sis etapes: a cada una
+        desplegues les notes de l'expedició i després superes les proves. Cada error fa baixar la precisió del
+        mapa i les pistes costen XP.
+      </p>
+    </form>
+  </section>
+
+  <!-- Pantalla 2: mapa de la xarxa -->
+  <section id="mapa" class="mapa" hidden>
+    <p class="sobretitol">Carta de navegació del Grup Vela</p>
+    <h1>Tria l'etapa <span class="accent">que toca</span></h1>
+    <p class="intro-mapa">
+      Les etapes s'obren en ordre. Cada etapa superada et dona una lletra de la contrasenya del cofre on hi ha
+      l'atles. Amb les sis lletres, el pots obrir.
+    </p>
+
+    <ol class="nodes">
+      {SALES.map((sala) => (
+        <li>
+          <a class="node" href={`${base}/sala/${sala.id}/`} data-node={sala.id}>
+            <img class="node-foto" src={sala.imatge.src} alt="" loading="lazy" />
+            <span class="node-icona" aria-hidden="true">{sala.icona}</span>
+            <span class="node-codi">{sala.codi}</span>
+            <span class="node-nom">{sala.nom}</span>
+            <span class="node-lloc">{sala.lloc}</span>
+            <span class="node-estat" data-estat>Bloquejat</span>
+          </a>
+        </li>
+      ))}
+      <li class="nucli-li">
+        <a class="node nucli" href={`${base}/final/`} data-node="final">
+          <span class="node-icona" aria-hidden="true">◈</span>
+          <span class="node-codi">EL COFRE</span>
+          <span class="node-nom">Obrir l'atles</span>
+          <span class="node-lloc">El far del Grup Vela</span>
+          <span class="node-estat" data-estat>Bloquejat</span>
+        </a>
+      </li>
+    </ol>
+
+    <div class="accions-mapa">
+      <button id="reinicia" class="boto boto-fantasma" type="button">Torna a començar l'expedició</button>
+    </div>
+  </section>
+
+  <script>
+    import { INTRO } from '../data/joc';
+    import { carrega, desa, reinicia, salaDesbloquejada, totesCompletades } from '../scripts/estat';
+    import { pintaHud } from '../scripts/hud';
+    import { so } from '../scripts/so';
+    import { transmet } from '../scripts/transmissio';
+
+    const briefing = document.getElementById('briefing')!;
+    const mapa = document.getElementById('mapa')!;
+    const form = document.getElementById('form-agent') as HTMLFormElement;
+
+    function mostraMapa() {
+      const estat = carrega();
+      briefing.hidden = true;
+      mapa.hidden = false;
+      let actualMarcat = false;
+      document.querySelectorAll<HTMLAnchorElement>('[data-node]').forEach((node) => {
+        const id = node.dataset.node!;
+        const etiqueta = node.querySelector<HTMLElement>('[data-estat]')!;
+        let estatNode: 'bloquejat' | 'disponible' | 'recuperat';
+        if (id === 'final') {
+          estatNode = estat.final.completada ? 'recuperat' : totesCompletades(estat) ? 'disponible' : 'bloquejat';
+        } else {
+          const n = Number(id);
+          estatNode = estat.sales[n]?.completada ? 'recuperat' : salaDesbloquejada(estat, n) ? 'disponible' : 'bloquejat';
+        }
+        node.dataset.estatNode = estatNode;
+        if (estatNode === 'disponible' && !actualMarcat) {
+          node.classList.add('actual');
+          actualMarcat = true;
+        }
+        etiqueta.textContent =
+          estatNode === 'recuperat' ? (id === 'final' ? 'Atles recuperat' : `Superada · +${estat.sales[Number(id)]?.xp ?? estat.final.xp} XP`)
+          : estatNode === 'disponible' ? 'Pots salpar'
+          : 'Bloquejat';
+        if (estatNode === 'bloquejat') {
+          node.setAttribute('aria-disabled', 'true');
+          node.addEventListener('click', (e) => {
+            e.preventDefault();
+            so('error');
+            node.classList.remove('sacseja');
+            void node.offsetWidth;
+            node.classList.add('sacseja');
+          });
+        }
+      });
+      pintaHud(estat);
+    }
+
+    const estat = carrega();
+    if (estat.agent) {
+      mostraMapa();
+    } else {
+      briefing.hidden = false;
+      transmet(document.getElementById('missatge-intro')!, INTRO.transmissio, () => {
+        form.hidden = false;
+        document.getElementById('nom-agent')?.focus();
+      });
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const dades = new FormData(form);
+      const nom = (dades.get('agent') as string).trim();
+      const grup = (dades.get('grup') as string) || '';
+      if (!nom || !grup) return;
+      const nou = carrega();
+      nou.agent = nom;
+      nou.grup = grup;
+      desa(nou);
+      so('desbloqueig');
+      mostraMapa();
+    });
+
+    const botoReinicia = document.getElementById('reinicia') as HTMLButtonElement;
+    let confirma = false;
+    botoReinicia.addEventListener('click', () => {
+      if (!confirma) {
+        confirma = true;
+        botoReinicia.textContent = 'Segur? Es perdrà tot el progrés. Clica un altre cop';
+        botoReinicia.classList.add('perill');
+        return;
+      }
+      reinicia();
+      location.reload();
+    });
+
+  </script>
+</Base>
